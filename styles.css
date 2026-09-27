@@ -56,6 +56,7 @@ button, input, select, textarea {
   position: sticky;
   top: 0;
   height: 100vh;
+  overflow-y: auto;
 }
 
 .brand-block {
@@ -839,6 +840,34 @@ textarea {
 }
 
 /* Responsive -------------------------------------------------------------- */
+
+/* Short laptop screens: compact the sidebar so the role card and reset button fit. */
+@media (max-height: 820px) and (min-width: 981px) {
+  .sidebar {
+    padding: 20px 16px;
+    gap: 14px;
+  }
+
+  .nav {
+    gap: 6px;
+  }
+
+  .nav-item {
+    padding: 9px 12px;
+  }
+
+  .role-card {
+    padding: 12px;
+  }
+
+  .role-hint {
+    display: none;
+  }
+
+  .reset-btn {
+    margin-top: 8px;
+  }
+}
 
 @media (max-width: 1200px) {
   .kpi-grid {
