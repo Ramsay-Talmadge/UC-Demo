@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>County Fleet Operations</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand-block">
+          <div class="brand-mark">CF</div>
+          <div>
+            <div class="eyebrow">Fleet Operations</div>
+            <h1>County Fleet</h1>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <button class="nav-item active" data-view="dashboard">Dashboard</button>
+          <button class="nav-item" data-view="assets">Assets</button>
+          <button class="nav-item" data-view="work-orders">Work Orders <span class="nav-count" id="navWoCount"></span></button>
+          <button class="nav-item" data-view="inventory">Inventory</button>
+          <button class="nav-item" data-view="pm">Preventive Maintenance</button>
+          <button class="nav-item" data-view="reports">Reports</button>
+        </nav>
+
+        <div class="role-card">
+          <label class="mini-label" for="roleSelect">Current Role</label>
+          <select id="roleSelect">
+            <option value="supervisor">Supervisor</option>
+            <option value="mechanic">Mechanic / Installer</option>
+            <option value="viewer">View Only</option>
+          </select>
+          <p class="role-hint" id="roleHint"></p>
+          <button id="resetDemoBtn" class="reset-btn" type="button">Reset demo data</button>
+        </div>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <div>
+            <div class="eyebrow muted">Maintenance Management Demo</div>
+            <h2 id="viewTitle">Dashboard</h2>
+          </div>
+          <div class="pill-row">
+            <span class="status-pill success">System Ready</span>
+            <span class="status-pill neutral" id="todayPill"></span>
+          </div>
+        </header>
+
+        <div id="roleBanner" class="role-banner hidden">
+          View-only access: you can browse records, but you can't create or close work orders.
+        </div>
+
+        <section id="dashboard" class="view active">
+          <div class="kpi-grid">
+            <div class="kpi-card accent-blue">
+              <span class="kpi-label">Assets Tracked</span>
+              <strong id="kpiAssets">–</strong>
+              <small id="kpiAssetsSub"></small>
+            </div>
+            <div class="kpi-card accent-green">
+              <span class="kpi-label">Open Work Orders</span>
+              <strong id="kpiOpenWOs">–</strong>
+              <small id="kpiOpenWOsSub"></small>
+            </div>
+            <div class="kpi-card accent-gold">
+              <span class="kpi-label">PM Due in 14 Days</span>
+              <strong id="kpiPmDue">–</strong>
+              <small id="kpiPmDueSub"></small>
+            </div>
+            <div class="kpi-card accent-red">
+              <span class="kpi-label">Maintenance Spend</span>
+              <strong id="kpiCosts">–</strong>
+              <small id="kpiCostsSub"></small>
+            </div>
+          </div>
+
+          <div class="content-grid two-col">
+            <div class="panel chart-panel">
+              <div class="panel-header">
+                <h3>Maintenance activity</h3>
+                <span class="tag">Labor hours · last 7 days</span>
+              </div>
+              <div class="chart-bars" id="activityChart"></div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <h3>Priority queue</h3>
+                <span class="tag">Needs attention</span>
+              </div>
+              <ul class="activity-list" id="priorityQueue"></ul>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Recent work orders</h3>
+              <span class="tag">Latest 5</span>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>WO #</th>
+                    <th>Asset</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                    <th class="num">Cost</th>
+                  </tr>
+                </thead>
+                <tbody id="recentWOs"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="assets" class="view">
+          <div class="panel">
+            <div class="panel-header split">
+              <div>
+                <h3>Asset Registry</h3>
+                <span class="muted small" id="assetCount"></span>
+              </div>
+              <div class="filter-row">
+                <select id="assetDeptFilter" aria-label="Filter by department">
+                  <option value="">All departments</option>
+                </select>
+                <div class="search-wrap">
+                  <input id="assetSearch" type="search" placeholder="Search by VIN, plate, make, location..." aria-label="Search assets" />
+                </div>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr id="assetSortRow">
+                    <th><button class="sort-btn" data-sort="asset">Asset</button></th>
+                    <th>VIN</th>
+                    <th><button class="sort-btn" data-sort="department">Dept</button></th>
+                    <th class="num"><button class="sort-btn" data-sort="currentMileage">Mileage</button></th>
+                    <th><button class="sort-btn" data-sort="conditionRating">Condition</button></th>
+                    <th><button class="sort-btn" data-sort="fuelType">Fuel</button></th>
+                  </tr>
+                </thead>
+                <tbody id="assetTableBody"></tbody>
+              </table>
+            </div>
+
+            <div id="assetDetail" class="asset-detail hidden">
+              <div class="detail-header">
+                <div>
+                  <div class="eyebrow muted">Asset Record</div>
+                  <h4 id="detailAssetName">Asset</h4>
+                </div>
+                <button id="detailCloseBtn" class="ghost-btn" type="button">Close</button>
+              </div>
+
+              <div class="detail-grid">
+                <div><span class="meta-label">Asset Number</span><strong id="detailAssetNumber"></strong></div>
+                <div><span class="meta-label">VIN</span><strong id="detailVin"></strong></div>
+                <div><span class="meta-label">Department</span><strong id="detailDepartment"></strong></div>
+                <div><span class="meta-label">Location</span><strong id="detailLocation"></strong></div>
+                <div><span class="meta-label">Mileage</span><strong id="detailMileage"></strong></div>
+                <div><span class="meta-label">Condition</span><strong id="detailCondition"></strong></div>
+                <div><span class="meta-label">License Plate</span><strong id="detailPlate"></strong></div>
+                <div><span class="meta-label">Fuel Type</span><strong id="detailFuel"></strong></div>
+                <div><span class="meta-label">Budget Code</span><strong id="detailBudget"></strong></div>
+                <div><span class="meta-label">PO Number</span><strong id="detailPo"></strong></div>
+                <div><span class="meta-label">Registration Expires</span><strong id="detailReg"></strong></div>
+                <div><span class="meta-label">Life Used</span><strong id="detailLife"></strong></div>
+              </div>
+
+              <div class="notes-box">
+                <span class="meta-label">Notes</span>
+                <p id="detailNotes"></p>
+              </div>
+
+              <div class="detail-history">
+                <div>
+                  <span class="meta-label">Work order history</span>
+                  <ul class="mini-list" id="detailWOs"></ul>
+                </div>
+                <div>
+                  <span class="meta-label">PM schedule</span>
+                  <ul class="mini-list" id="detailPMs"></ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="work-orders" class="view">
+          <div class="content-grid two-col">
+            <div class="panel">
+              <div class="panel-header">
+                <h3>Create work order</h3>
+                <span class="tag">New request</span>
+              </div>
+              <form id="woForm" class="stack-form">
+                <div class="form-row">
+                  <label>
+                    Asset
+                    <select id="woAsset" required></select>
+                  </label>
+                  <label>
+                    Priority
+                    <select id="woPriority">
+                      <option>Low</option>
+                      <option selected>Routine</option>
+                      <option>High</option>
+                      <option>Critical</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="form-row">
+                  <label>
+                    Work Type
+                    <select id="woType">
+                      <option>Repair</option>
+                      <option>Inspection</option>
+                      <option>PM Service</option>
+                      <option>Breakdown</option>
+                    </select>
+                  </label>
+                  <label>
+                    Mileage
+                    <input id="woMileage" type="number" min="0" />
+                  </label>
+                </div>
+
+                <label>
+                  Description
+                  <textarea id="woDescription" rows="3">Cooling system leak diagnosed on right-side radiator hose; inspect mounting brackets and pressure test system.</textarea>
+                </label>
+
+                <div class="form-row">
+                  <label>
+                    Labor Cost
+                    <input id="woLabor" type="number" min="0" value="420" />
+                  </label>
+                  <label>
+                    Parts Cost
+                    <input id="woParts" type="number" min="0" value="180" />
+                  </label>
+                </div>
+
+                <div class="form-row">
+                  <label>
+                    Vendor
+                    <select id="woVendorName">
+                      <option value="">None (in-house)</option>
+                    </select>
+                  </label>
+                  <label>
+                    Vendor Cost
+                    <input id="woVendor" type="number" min="0" value="0" />
+                  </label>
+                </div>
+
+                <label>
+                  Condition Rating
+                  <select id="woCondition">
+                    <option value="1">1 - Poor</option>
+                    <option value="2">2 - Fair</option>
+                    <option value="3" selected>3 - Good</option>
+                    <option value="4">4 - Excellent</option>
+                  </select>
+                </label>
+
+                <div class="form-total">
+                  <span>Estimated total</span>
+                  <strong id="woTotal">$0</strong>
+                </div>
+
+                <button type="submit" class="primary-btn">Create Work Order</button>
+              </form>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <h3>Work order queue</h3>
+                <span class="tag" id="woQueueTag">Queue</span>
+              </div>
+              <ul class="wo-list" id="woList"></ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="inventory" class="view">
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Parts inventory</h3>
+              <span class="tag" id="inventoryTag">Parts</span>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Part</th>
+                    <th>Location</th>
+                    <th class="num">On Hand</th>
+                    <th class="num">Reorder At</th>
+                    <th class="num">Unit Cost</th>
+                    <th class="num">Stock Value</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="inventoryTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="pm" class="view">
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Preventive maintenance schedule</h3>
+              <span class="tag">Soonest first</span>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Asset</th>
+                    <th>Service</th>
+                    <th>Next Due</th>
+                    <th>Interval</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="pmTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="reports" class="view">
+          <div class="content-grid two-col">
+            <div class="panel">
+              <div class="panel-header">
+                <h3>Department cost summary</h3>
+                <span class="tag">All work orders</span>
+              </div>
+              <div class="table-wrap">
+                <table class="data-table compact">
+                  <thead>
+                    <tr>
+                      <th>Department</th>
+                      <th class="num">Labor</th>
+                      <th class="num">Parts</th>
+                      <th class="num">Vendor</th>
+                      <th class="num">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody id="deptCostTable"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <h3>Vendor cost summary</h3>
+                <span class="tag">Outside services</span>
+              </div>
+              <div class="table-wrap">
+                <table class="data-table compact">
+                  <thead>
+                    <tr>
+                      <th>Vendor</th>
+                      <th class="num">Jobs</th>
+                      <th class="num">Cost</th>
+                    </tr>
+                  </thead>
+                  <tbody id="vendorCostTable"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="content-grid two-col">
+            <div class="panel">
+              <div class="panel-header">
+                <h3>PM priority board</h3>
+                <span class="tag">Overdue first</span>
+              </div>
+              <ul class="mini-list" id="pmPriorityList"></ul>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <h3>Asset life used</h3>
+                <span class="tag">Top 8 · replacement planning</span>
+              </div>
+              <ul class="life-list" id="lifeExpectancyList"></ul>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
