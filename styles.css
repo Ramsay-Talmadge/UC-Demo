@@ -372,6 +372,14 @@ button, input, select, textarea {
   color: white;
 }
 
+.practice-note {
+  margin: 10px 0 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: #b8c9e4;
+  opacity: 0.85;
+}
+
 .muted { color: var(--muted); }
 .small { font-size: 0.8rem; }
 .mono { font-family: Consolas, "Cascadia Mono", monospace; font-size: 0.85rem; }

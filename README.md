@@ -1,12 +1,16 @@
 # Fleet Operations Demo
 
+**Live demo: https://ramsay-talmadge.github.io/UC-Demo/**
+
+> **Practice project.** I built this to practice designing a maintenance-management (CMMS) interface. The county, assets, vendors and people are fictional sample data.
+
 A browser-based prototype of a county fleet maintenance system (CMMS): assets, work orders, parts inventory, preventive maintenance and cost reporting.
 
 It's a demo, not a production system. All data is sample data held in memory, so reloading the page (or clicking **Reset demo data**) returns to the starting state.
 
 ## Run it
 
-No install or build step. Open `index.html` in any modern browser.
+Open the [live demo](https://ramsay-talmadge.github.io/UC-Demo/) in a modern browser. To run it locally, download the repo and open `index.html`. There's no install or build step.
 
 Jump straight to a view with a hash, e.g. `index.html#/work-orders` or `index.html#/reports`.
 
